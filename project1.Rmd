@@ -1,0 +1,81 @@
+---
+title: "Course Project 1"
+output: html_document
+---
+## Loading Data
+
+```{r setup, include=TRUE}
+data <- read.csv("activity.csv", colClasses = c("numeric", "Date", "numeric"))
+
+```
+
+
+## Total steps per day over time
+
+```{r, echo = FALSE}
+steps <- aggregate(data[,"steps"], by = list(data$date), FUN = sum)
+plot(steps, type = "h", xlab = "Date", ylab = "# of Steps", main = "Step Histogram")
+mean(steps$x, na.rm = TRUE)
+median(steps$x, na.rm = TRUE)
+```
+
+
+## Average Daily Steps
+
+```{r, echo = FALSE}
+
+dataclean <- na.omit(data)
+
+steps2 <- aggregate(dataclean[,"steps"], by = list(dataclean$interval), FUN = mean)
+
+plot(steps2, type = "l", xlab = "Time interval", ylab = "Number of steps", main = "Steps by time of day")
+```
+
+## Filling in Missing Values
+
+```{r}
+
+sum(is.na(data$steps))
+data3 <- dataclean
+
+for (i in 1:nrow(data3)){ 
+  if (is.na(data3[i,"steps"])){
+    int <- data3[i,"interval"]
+    data3[i,"steps"] <- steps2[steps2$Group.1 == int,][[2]] 
+    }
+  }
+
+
+steps3 <- aggregate(data3[,"steps"], by = list(data3$date), FUN = sum)
+
+plot(steps3, type = "h", xlab = "Date", ylab = "# of Steps", main = "Step Histogram")
+mean(steps3$x)
+median(steps3$x)
+
+
+```
+
+## Weekend vs Weekday
+
+```{r, echo = FALSE}
+data3 <- na.omit(data3)
+data3$weekend <- weekdays(data3$date) == c("Saturday", "Sunday")
+
+dataWD <- subset(data3, subset = data3$weekend == FALSE)
+dataWE <- subset(data3, subset = data3$weekend == TRUE)
+
+dataWD$weekend <- NULL
+dataWE$weekend <- NULL
+
+stepsWD <- aggregate(dataWD[,"steps"], by = list(dataWD$interval), FUN = mean)
+stepsWE <- aggregate(dataWE[,"steps"], by = list(dataWE$interval), FUN = mean)
+
+plot(stepsWD, type = "l", xlab = "Time interval", ylab = "Number of steps", main = "Steps by time of day", col = "red")
+lines(stepsWE,col="green")
+
+legend(1500,230, c("Weekday","Weekend"), lty=c(1,1), lwd=c(2.5,2.5), col=c("red","green"), bty = "n")
+
+
+
+
+```
